@@ -146,8 +146,8 @@ export function FreeEmployeesView({
         <ul className="text-sm text-gray-700 space-y-1">
           <li>• <strong>Zeleni okviri</strong> - zaposleni slobodni tog dana</li>
           <li>• <strong>Crveni broj</strong> - broj zaposlenih koji radi</li>
-          <li>• Koristite "Export" da podelite listu slobodnih sa timom</li>
-          <li>• Za izmene raspoređa, idite na karticu "Raspored smena"</li>
+          <li>• Koristite &quot;Export&quot; da podelite listu slobodnih sa timom</li>
+          <li>• Za izmene raspoređa, idite na karticu &quot;Raspored smena&quot;</li>
         </ul>
       </div>
     </div>

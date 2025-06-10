@@ -143,8 +143,8 @@ export function AnalyticsView({ employees, schedules }: AnalyticsViewProps) {
       const weekSchedule = schedules[weekKey] || {};
       
       // Prođi kroz sve smene u toj nedelji
-      Object.entries(weekSchedule).forEach(([scheduleKey, employeeNames]) => {
-        const [department, day, ...shiftParts] = scheduleKey.split('-');
+              Object.entries(weekSchedule).forEach(([scheduleKey, employeeNames]) => {
+        const [, day, ...shiftParts] = scheduleKey.split('-');
         const shift = shiftParts.join('-');
         
         // Proveri da li je dan u izabranom mesecu
@@ -388,7 +388,7 @@ export function AnalyticsView({ employees, schedules }: AnalyticsViewProps) {
           <li>• <strong>Sati se računaju</strong> na osnovu unetih smena u rasporedu</li>
           <li>• <strong>🏆 Top 3</strong> zaposlena su označena zlatnom pozadinom</li>
           <li>• <strong>Prosek sati/dan</strong> = ukupno sati / broj dana rada</li>
-          <li>• Smene poput "8-16" se računaju kao 8 sati, "10-14 i 18-22" kao 8 sati</li>
+          <li>• Smene poput &quot;8-16&quot; se računaju kao 8 sati, &quot;10-14 i 18-22&quot; kao 8 sati</li>
           <li>• Podaci se ažuriraju automatski kada menjate raspored</li>
         </ul>
       </div>
