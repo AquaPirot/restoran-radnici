@@ -1,3 +1,4 @@
+// src/app/page.tsx - Simplifikovana verzija
 'use client';
 
 import React from 'react';
@@ -6,6 +7,9 @@ import { Navigation } from '@/components/layout/Navigation';
 import { ScheduleView } from '@/components/schedule/ScheduleView';
 import { EmployeeForm } from '@/components/employees/EmployeeForm';
 import { EmployeeList } from '@/components/employees/EmployeeList';
+import { SalaryForm } from '@/components/salary/SalaryForm';
+import { SalaryList } from '@/components/salary/SalaryList';
+import { SimpleExport } from '@/components/export/SimpleExport';
 import { useRestaurantApp } from '@/hooks/useRestaurantApp';
 
 export default function HomePage() {
@@ -20,11 +24,15 @@ export default function HomePage() {
     
     // Data
     employees,
+    schedules,
+    salaries,
     availableShifts,
     
     // Forms
     employeeForm,
     setEmployeeForm,
+    salaryForm,
+    setSalaryForm,
     scheduleForm,
     setScheduleForm,
     
@@ -34,6 +42,8 @@ export default function HomePage() {
     addEmployeeToSchedule,
     removeEmployeeFromSchedule,
     getEmployeesForShift,
+    addSalary,
+    removeSalary,
     
     // Loading
     isLoaded
@@ -89,23 +99,39 @@ export default function HomePage() {
         )}
 
         {activeMenu === 'salary' && (
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-lg font-semibold mb-4">Plate - Uskoro</h3>
-            <p className="text-gray-600">Ova sekcija će biti implementirana u sledećem koraku.</p>
-          </div>
-        )}
-
-        {activeMenu === 'analytics' && (
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-lg font-semibold mb-4">Pregled - Uskoro</h3>
-            <p className="text-gray-600">Ova sekcija će biti implementirana u sledećem koraku.</p>
-          </div>
+          <>
+            <SalaryForm
+              employees={employees}
+              salaryForm={salaryForm}
+              onFormChange={setSalaryForm}
+              onAddSalary={addSalary}
+            />
+            <div className="mt-4">
+              <SalaryList 
+                salaries={salaries} 
+                onRemoveSalary={removeSalary}
+              />
+            </div>
+          </>
         )}
 
         {activeMenu === 'export' && (
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-lg font-semibold mb-4">Export - Uskoro</h3>
-            <p className="text-gray-600">Ova sekcija će biti implementirana u sledećem koraku.</p>
+          <SimpleExport
+            employees={employees}
+            schedules={schedules}
+            salaries={salaries}
+            currentWeek={currentWeek}
+          />
+        )}
+
+        {/* Placeholder za buduće funkcionalnosti */}
+        {activeMenu === 'analytics' && (
+          <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Pregled - Uskoro</h3>
+            <p className="text-gray-600 mb-4">Napredne analitike će biti dodane u sledećem ažuriranju.</p>
+            <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded">
+              💡 U sledećoj verziji: praćenje radnih sati, troškovi po nedelji, analiza efikasnosti
+            </div>
           </div>
         )}
 

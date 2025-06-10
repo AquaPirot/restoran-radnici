@@ -1,9 +1,10 @@
+// src/lib/constants.ts - Ažurirane boje
 import { ChefHat, Utensils, Waves, Calendar, Users, DollarSign, BarChart3, Camera } from 'lucide-react';
 
 export const DEPARTMENTS = [
-  { id: 'kuhinja', name: 'Kuhinja', icon: ChefHat, color: 'bg-red-500' },
-  { id: 'restoran', name: 'Restoran', icon: Utensils, color: 'bg-blue-500' },
-  { id: 'bazen', name: 'Bazen', icon: Waves, color: 'bg-cyan-500' }
+  { id: 'kuhinja', name: 'Kuhinja', icon: ChefHat, color: 'bg-gradient-to-br from-red-500 to-red-600' },
+  { id: 'restoran', name: 'Restoran', icon: Utensils, color: 'bg-gradient-to-br from-blue-500 to-blue-600' },
+  { id: 'bazen', name: 'Bazen', icon: Waves, color: 'bg-gradient-to-br from-cyan-500 to-cyan-600' }
 ] as const;
 
 export const MENU_ITEMS = [
