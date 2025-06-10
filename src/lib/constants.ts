@@ -1,0 +1,27 @@
+import { ChefHat, Utensils, Waves, Calendar, Users, DollarSign, BarChart3, Camera } from 'lucide-react';
+
+export const DEPARTMENTS = [
+  { id: 'kuhinja', name: 'Kuhinja', icon: ChefHat, color: 'bg-red-500' },
+  { id: 'restoran', name: 'Restoran', icon: Utensils, color: 'bg-blue-500' },
+  { id: 'bazen', name: 'Bazen', icon: Waves, color: 'bg-cyan-500' }
+] as const;
+
+export const MENU_ITEMS = [
+  { id: 'schedule', name: 'Raspored', icon: Calendar },
+  { id: 'employees', name: 'Zaposleni', icon: Users },
+  { id: 'salary', name: 'Plate', icon: DollarSign },
+  { id: 'analytics', name: 'Pregled', icon: BarChart3 },
+  { id: 'export', name: 'Export', icon: Camera }
+] as const;
+
+export const DEFAULT_SHIFTS = [
+  '8-16',
+  '16-00', 
+  '10-14 i 18-22',
+  '14-22',
+  '10-19'
+] as const;
+
+export const DAYS_OF_WEEK = [
+  'Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota', 'Nedelja'
+] as const;
