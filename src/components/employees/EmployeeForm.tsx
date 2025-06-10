@@ -2,16 +2,11 @@ import React from 'react';
 import { User } from 'lucide-react';
 import { Card, Input, Select, Button } from '@/components/ui';
 import { DEPARTMENTS } from '@/lib/constants';
+import { EmployeeFormData } from '@/types';
 
 interface EmployeeFormProps {
-  employeeForm: {
-    name: string;
-    position: string;
-    department: string;
-    phone: string;
-    notes: string;
-  };
-  onFormChange: (form: any) => void;
+  employeeForm: EmployeeFormData;
+  onFormChange: (form: EmployeeFormData) => void;
   onAddEmployee: () => void;
 }
 
@@ -33,7 +28,7 @@ export function EmployeeForm({ employeeForm, onFormChange, onAddEmployee }: Empl
         
         <Select
           value={employeeForm.department}
-          onChange={(e) => onFormChange({...employeeForm, department: e.target.value})}
+          onChange={(e) => onFormChange({...employeeForm, department: e.target.value as 'kuhinja' | 'restoran' | 'bazen'})}
           options={DEPARTMENTS.map(dept => ({ value: dept.id, label: dept.name }))}
         />
         

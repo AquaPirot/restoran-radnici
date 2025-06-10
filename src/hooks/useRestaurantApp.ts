@@ -1,7 +1,7 @@
 // src/hooks/useRestaurantApp.ts - Fokus na osnove
 import { useState } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { Employee, Schedule } from '@/types';
+import { Employee, Schedule, EmployeeFormData, SalaryFormData, ScheduleFormData } from '@/types';
 import { DEFAULT_SHIFTS } from '@/lib/constants';
 
 export function useRestaurantApp() {
@@ -14,24 +14,24 @@ export function useRestaurantApp() {
   const [schedules, setSchedules, schedulesLoaded] = useLocalStorage<Schedule>('restaurant-schedules', {});
   const [employees, setEmployees, employeesLoaded] = useLocalStorage<Employee[]>('restaurant-employees', []);
   const [salaries, setSalaries, salariesLoaded] = useLocalStorage<Record<string, { total: number; bank: number; cash: number }>>('restaurant-salaries', {});
-  const [availableShifts, setAvailableShifts, shiftsLoaded] = useLocalStorage<string[]>('custom-shifts', [...DEFAULT_SHIFTS]);
+  const [availableShifts,, shiftsLoaded] = useLocalStorage<string[]>('custom-shifts', [...DEFAULT_SHIFTS]);
 
   // Form states
-  const [employeeForm, setEmployeeForm] = useState({
+  const [employeeForm, setEmployeeForm] = useState<EmployeeFormData>({
     name: '',
     position: '',
-    department: 'kuhinja' as const,
+    department: 'kuhinja',
     phone: '',
     notes: ''
   });
 
-  const [salaryForm, setSalaryForm] = useState({
+  const [salaryForm, setSalaryForm] = useState<SalaryFormData>({
     employee: '',
     totalSalary: '',
     bankAmount: ''
   });
 
-  const [scheduleForm, setScheduleForm] = useState({
+  const [scheduleForm, setScheduleForm] = useState<ScheduleFormData>({
     employee: '',
     day: '',
     shift: ''

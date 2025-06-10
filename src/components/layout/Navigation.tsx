@@ -1,5 +1,5 @@
 import React from 'react';
-import { MENU_ITEMS } from '@/lib/constants';
+import { MENU_ITEMS, type MenuItem } from '@/lib/constants';
 
 interface NavigationProps {
   activeMenu: string;
@@ -9,7 +9,7 @@ interface NavigationProps {
 export function Navigation({ activeMenu, onMenuChange }: NavigationProps) {
   return (
     <div className="flex overflow-x-auto bg-white border-b">
-      {MENU_ITEMS.map(item => {
+      {MENU_ITEMS.map((item: MenuItem) => {
         const Icon = item.icon;
         return (
           <button

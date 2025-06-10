@@ -4,7 +4,7 @@ import { WeekNavigator } from './WeekNavigator';
 import { EmployeeSelector } from './EmployeeSelector';
 import { ShiftCard } from './ShiftCard';
 import { DAYS_OF_WEEK } from '@/lib/constants';
-import { Employee } from '@/types';
+import { Employee, ScheduleFormData } from '@/types';
 
 interface ScheduleViewProps {
   activeTab: string;
@@ -13,12 +13,8 @@ interface ScheduleViewProps {
   onWeekChange: (week: number) => void;
   employees: Employee[];
   availableShifts: string[];
-  scheduleForm: {
-    employee: string;
-    day: string;
-    shift: string;
-  };
-  onFormChange: (form: any) => void;
+  scheduleForm: ScheduleFormData;
+  onFormChange: (form: ScheduleFormData) => void;
   onAddEmployee: () => void;
   getEmployeesForShift: (department: string, day: string, shift: string) => string[];
   onRemoveEmployee: (day: string, shift: string, index: number) => void;

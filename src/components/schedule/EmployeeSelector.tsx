@@ -1,19 +1,15 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { Card, Select, Button } from '@/components/ui';
-import { Employee } from '@/types';
+import { Employee, ScheduleFormData } from '@/types';
 import { DAYS_OF_WEEK } from '@/lib/constants';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
   activeTab: string;
   availableShifts: string[];
-  scheduleForm: {
-    employee: string;
-    day: string;
-    shift: string;
-  };
-  onFormChange: (form: any) => void;
+  scheduleForm: ScheduleFormData;
+  onFormChange: (form: ScheduleFormData) => void;
   onAddEmployee: () => void;
 }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DEPARTMENTS } from '@/lib/constants';
+import { DEPARTMENTS, type Department } from '@/lib/constants';
 
 interface DepartmentTabsProps {
   activeTab: string;
@@ -9,7 +9,7 @@ interface DepartmentTabsProps {
 export function DepartmentTabs({ activeTab, onTabChange }: DepartmentTabsProps) {
   return (
     <div className="flex mb-4 bg-white rounded-lg shadow-sm overflow-hidden">
-      {DEPARTMENTS.map(dept => {
+      {DEPARTMENTS.map((dept: Department) => {
         const Icon = dept.icon;
         const isActive = activeTab === dept.id;
         return (

@@ -1,3 +1,4 @@
+// src/types/index.ts - Popravljena verzija
 export interface Employee {
   id: string;
   name: string;
@@ -20,15 +21,25 @@ export interface Schedule {
   };
 }
 
-export interface Department {
-  id: string;
+// Department i MenuItem su sada u constants.ts
+
+// Novi interfejsi za forme
+export interface EmployeeFormData {
   name: string;
-  color: string;
-  icon: any;
+  position: string;
+  department: 'kuhinja' | 'restoran' | 'bazen';
+  phone: string;
+  notes: string;
 }
 
-export interface MenuItem {
-  id: string;
-  name: string;
-  icon: any;
+export interface SalaryFormData {
+  employee: string;
+  totalSalary: string;
+  bankAmount: string;
+}
+
+export interface ScheduleFormData {
+  employee: string;
+  day: string;
+  shift: string;
 }

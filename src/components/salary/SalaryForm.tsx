@@ -1,17 +1,13 @@
 import React from 'react';
 import { DollarSign } from 'lucide-react';
 import { Card, Select, Input, Button } from '@/components/ui';
-import { Employee } from '@/types';
+import { Employee, SalaryFormData } from '@/types';
 import { DEPARTMENTS } from '@/lib/constants';
 
 interface SalaryFormProps {
   employees: Employee[];
-  salaryForm: {
-    employee: string;
-    totalSalary: string;
-    bankAmount: string;
-  };
-  onFormChange: (form: any) => void;
+  salaryForm: SalaryFormData;
+  onFormChange: (form: SalaryFormData) => void;
   onAddSalary: () => void;
 }
 
