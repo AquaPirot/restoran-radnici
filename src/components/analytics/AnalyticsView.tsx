@@ -47,7 +47,7 @@ export function AnalyticsView({ employees, schedules }: AnalyticsViewProps) {
     };
 
     // Analiziraj schedule podatke
-    Object.entries(schedules).forEach(([weekKey, weekSchedule]) => {
+    Object.entries(schedules).forEach(([, weekSchedule]) => {
       if (!weekSchedule || typeof weekSchedule !== 'object') return;
       
       Object.entries(weekSchedule).forEach(([scheduleKey, employeeNames]) => {
@@ -56,7 +56,7 @@ export function AnalyticsView({ employees, schedules }: AnalyticsViewProps) {
         const keyParts = scheduleKey.split('-');
         if (keyParts.length < 3) return;
         
-        const [department, day, ...shiftParts] = keyParts;
+        const [department, , ...shiftParts] = keyParts;
         const shift = shiftParts.join('-');
         
         // Preskoči ako nema validne smene
@@ -237,14 +237,14 @@ export function AnalyticsView({ employees, schedules }: AnalyticsViewProps) {
           {analytics.totalEmployees === 0 && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <div className="text-red-800 font-medium">Nema zaposlenih u sistemu</div>
-              <div className="text-red-600 text-sm">Dodajte zaposlene u sekciju "Zaposleni"</div>
+              <div className="text-red-600 text-sm">Dodajte zaposlene u sekciju &quot;Zaposleni&quot;</div>
             </div>
           )}
           
           {analytics.totalShifts === 0 && analytics.totalEmployees > 0 && (
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="text-yellow-800 font-medium">Nema kreiraných smena</div>
-              <div className="text-yellow-600 text-sm">Idite na "Raspored smena" da kreirate raspored</div>
+              <div className="text-yellow-600 text-sm">Idite na &quot;Raspored smena&quot; da kreirate raspored</div>
             </div>
           )}
 
