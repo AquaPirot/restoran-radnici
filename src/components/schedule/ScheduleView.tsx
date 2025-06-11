@@ -22,8 +22,8 @@ interface ScheduleViewProps {
   onAddEmployee: () => void;
   getEmployeesForShift: (department: string, day: string, shift: string) => string[];
   onRemoveEmployee: (day: string, shift: string, index: number) => void;
-  schedules: any;
-  onUpdateSchedule: (updates: any) => void;
+  schedules: Schedules;
+  onUpdateSchedule: (updates: Record<string, Record<string, string[]>>) => void;
 }
 
 export function ScheduleView({

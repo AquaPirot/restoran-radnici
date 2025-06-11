@@ -1,6 +1,6 @@
 // src/components/schedule/PositionBasedScheduler.tsx
 import React, { useState } from 'react';
-import { Clock, Users, Plus, X } from 'lucide-react';
+import { Clock, Users, X } from 'lucide-react';
 import { Card } from '@/components/ui';
 import type { Employee, Schedules } from '@/types';
 import { DAYS_OF_WEEK } from '@/lib/constants';
@@ -10,7 +10,7 @@ interface PositionBasedSchedulerProps {
   activeTab: string;
   currentWeek: number;
   schedules: Schedules;
-  onUpdateSchedule: (updates: any) => void;
+  onUpdateSchedule: (updates: Record<string, Record<string, string[]>>) => void;
 }
 
 interface ShiftPosition {

@@ -7,7 +7,6 @@ import type {
   Salary, 
   SalaryFormData, 
   ScheduleFormData, 
-  Schedule, 
   Schedules 
 } from '@/types';
 
@@ -153,7 +152,7 @@ export function useRestaurantApp() {
   };
 
   // New function for position-based scheduler
-  const updateSchedule = (updates: Record<string, any>) => {
+  const updateSchedule = (updates: Record<string, Record<string, string[]>>) => {
     setSchedules(prev => {
       const newSchedules = { ...prev };
       Object.entries(updates).forEach(([weekKey, weekData]) => {
