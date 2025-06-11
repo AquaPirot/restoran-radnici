@@ -1,7 +1,7 @@
 // src/components/export/SimpleExport.tsx
 import React, { useState } from 'react';
 import { Download, Calendar, Users, DollarSign } from 'lucide-react';
-import { Card, Button, Select } from '@/components/ui';
+import { Card, Button } from '@/components/ui';
 import { DAYS_OF_WEEK } from '@/lib/constants';
 import type { Employee, Schedules, Salary } from '@/types';
 
@@ -208,15 +208,15 @@ export function SimpleExport({ employees, schedules, salaries, currentWeek }: Si
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Tip exporta
           </label>
-          <Select
+          <select
             value={exportType}
             onChange={(e) => setExportType(e.target.value as 'schedule' | 'free' | 'salaries')}
-            className="w-full"
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="schedule">📅 Raspored smena</option>
             <option value="free">😎 Slobodni zaposleni</option>
             <option value="salaries">💰 Plate</option>
-          </Select>
+          </select>
         </div>
 
         <div className="bg-gray-50 p-4 rounded-lg">
