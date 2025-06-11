@@ -8,7 +8,7 @@ import { FreeEmployeesView } from './FreeEmployeesView';
 import { PositionBasedScheduler } from './PositionBasedScheduler';
 import { MobileFriendlyScheduler } from './MobileFriendlyScheduler';
 import { DAYS_OF_WEEK } from '@/lib/constants';
-import { Employee, ScheduleFormData } from '@/types';
+import type { Employee, ScheduleFormData, Schedules } from '@/types';
 
 interface ScheduleViewProps {
   activeTab: string;
