@@ -14,16 +14,7 @@ import { AnalyticsView } from '@/components/analytics/AnalyticsView';
 import { SimpleExport } from '@/components/export/SimpleExport';
 import { useRestaurantApp } from '@/hooks/useRestaurantApp';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-
-interface MonthlySalary {
-  employee: string;
-  month: string;
-  year: number;
-  total: number;
-  bank: number;
-  cash: number;
-  createdAt: string;
-}
+import type { MonthlySalary } from '@/types';
 
 export default function HomePage() {
   const {
@@ -55,6 +46,7 @@ export default function HomePage() {
     addEmployeeToSchedule,
     removeEmployeeFromSchedule,
     getEmployeesForShift,
+    updateSchedule,
     addSalary,
     removeSalary,
     
@@ -118,6 +110,8 @@ export default function HomePage() {
             onAddEmployee={addEmployeeToSchedule}
             getEmployeesForShift={getEmployeesForShift}
             onRemoveEmployee={removeEmployeeFromSchedule}
+            schedules={schedules}
+            onUpdateSchedule={updateSchedule}
           />
         )}
 

@@ -1,248 +1,265 @@
-// src/components/export/SimpleExport.tsx - Fokus na WhatsApp export
+// src/components/export/SimpleExport.tsx
 import React, { useState } from 'react';
-import { Copy, Share, Download, MessageCircle } from 'lucide-react';
-import { Card, Select, Button } from '@/components/ui';
-import { Employee, Schedule } from '@/types';
-import { DEPARTMENTS, DAYS_OF_WEEK } from '@/lib/constants';
+import { Download, Calendar, Users, DollarSign } from 'lucide-react';
+import { Card, Button, Select } from '@/components/ui';
+import { DAYS_OF_WEEK } from '@/lib/constants';
+import type { Employee, Schedules, Salary } from '@/types';
 
 interface SimpleExportProps {
   employees: Employee[];
-  schedules: Schedule;
-  salaries: Record<string, { total: number; bank: number; cash: number }>;
+  schedules: Schedules;
+  salaries: Record<string, Salary>;
   currentWeek: number;
 }
 
 export function SimpleExport({ employees, schedules, salaries, currentWeek }: SimpleExportProps) {
-  const [exportType, setExportType] = useState<'schedule' | 'salaries'>('schedule');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [exportType, setExportType] = useState<'schedule' | 'free' | 'salaries'>('schedule');
 
-  const generateScheduleExport = () => {
-    const weekKey = `week-${currentWeek}`;
-    const currentSchedule = schedules[weekKey] || {};
-    const weekText = currentWeek === 0 ? 'TRENUTNA NEDELJA' : 
-                    currentWeek > 0 ? `NEDELJA +${currentWeek}` : `NEDELJA ${currentWeek}`;
-    
-    const filteredDepts = selectedDepartment === 'all' ? DEPARTMENTS : DEPARTMENTS.filter(d => d.id === selectedDepartment);
-    
-    let content = `🗓️ RASPORED SMENA\n${weekText}\n`;
-    content += `${'='.repeat(30)}\n\n`;
-    
-    filteredDepts.forEach(dept => {
-      content += `🏢 ${dept.name.toUpperCase()}\n`;
-      content += `${'-'.repeat(dept.name.length + 5)}\n\n`;
+  const weekKey = `week-${currentWeek}`;
+  const currentSchedule = schedules[weekKey] || {};
+
+  // Export rasporeda smena
+  const exportSchedule = () => {
+    let content = `RASPORED SMENA - NEDELJA ${currentWeek === 0 ? 'TRENUTNA' : currentWeek > 0 ? `+${currentWeek}` : currentWeek}\n`;
+    content += '='.repeat(50) + '\n\n';
+
+    DAYS_OF_WEEK.forEach(day => {
+      content += `📅 ${day.toUpperCase()}\n`;
+      content += '-'.repeat(30) + '\n';
+
+      let hasSchedule = false;
+
+      // Grupa po smenama
+      const shifts = ['8-16', '10-14', '14-22', '16-24', '18-22', '10-14 i 18-22'];
       
-      DAYS_OF_WEEK.forEach(day => {
-        const dayShifts = Object.entries(currentSchedule)
-          .filter(([key]) => key.startsWith(`${dept.id}-${day}-`))
-          .map(([key, employees]) => {
-            const shift = key.split('-').slice(2).join('-');
-            return { shift, employees };
-          });
+      shifts.forEach(shift => {
+        const employeesInShift: string[] = [];
         
-        if (dayShifts.length > 0) {
-          content += `📅 ${day.toUpperCase()}\n`;
-          dayShifts.forEach(({ shift, employees }) => {
-            content += `   ⏰ ${shift}\n`;
-            employees.forEach((emp: string) => {
-              content += `     • ${emp}\n`;
-            });
+        Object.entries(currentSchedule).forEach(([key, employeeNames]) => {
+          if (key.includes(`-${day}-${shift}`) || key.includes(`-${day}-`) && key.endsWith(`-${shift}`)) {
+            employeesInShift.push(...(employeeNames as string[]));
+          }
+        });
+
+        if (employeesInShift.length > 0) {
+          content += `⏰ ${shift}h:\n`;
+          employeesInShift.forEach(empName => {
+            const employee = employees.find(e => e.name === empName);
+            content += `   • ${empName}`;
+            if (employee?.position) content += ` (${employee.position})`;
+            if (employee?.phone) content += ` - 📞 ${employee.phone}`;
+            content += '\n';
           });
           content += '\n';
+          hasSchedule = true;
         }
       });
-    });
-    
-    content += `\n📱 Generirano: ${new Date().toLocaleDateString('sr-RS')} u ${new Date().toLocaleTimeString('sr-RS')}\n`;
-    content += `🏢 Restoran Management`;
-    
-    return content;
-  };
 
-  const generateSalariesExport = () => {
-    const filteredEmployees = selectedDepartment === 'all' ? 
-      employees : employees.filter(emp => emp.department === selectedDepartment);
-    
-    let content = `💰 LISTA PLATA\n`;
-    content += `${'-'.repeat(20)}\n\n`;
-    
-    const totalStats = { total: 0, bank: 0, cash: 0 };
-    let processedCount = 0;
-    
-    filteredEmployees.forEach(emp => {
-      const salary = salaries[emp.name];
-      if (salary) {
-        const dept = DEPARTMENTS.find(d => d.id === emp.department);
-        content += `👤 ${emp.name}\n`;
-        content += `🏢 ${dept?.name} - ${emp.position}\n`;
-        content += `💵 Ukupno: ${salary.total.toLocaleString()} RSD\n`;
-        content += `🏦 Račun: ${salary.bank.toLocaleString()} RSD\n`;
-        content += `💸 Keš: ${salary.cash.toLocaleString()} RSD\n`;
-        content += `${'─'.repeat(25)}\n\n`;
-        
-        totalStats.total += salary.total;
-        totalStats.bank += salary.bank;
-        totalStats.cash += salary.cash;
-        processedCount++;
+      if (!hasSchedule) {
+        content += '   Nema zakazanih smena\n\n';
       }
+      content += '\n';
+    });
+
+    content += '\n📊 STATISTIKE:\n';
+    content += '-'.repeat(20) + '\n';
+    content += `Ukupno zaposlenih: ${employees.length}\n`;
+    
+    const totalScheduled = new Set();
+    Object.values(currentSchedule).forEach(employeeNames => {
+      (employeeNames as string[]).forEach(name => totalScheduled.add(name));
     });
     
-    if (processedCount === 0) {
-      content += `⚠️ Nema podataka o platama za izabrano odelenje.\n\n`;
-    } else {
-      content += `📊 UKUPNO (${processedCount} zaposlenih)\n`;
-      content += `💵 Ukupne plate: ${totalStats.total.toLocaleString()} RSD\n`;
-      content += `🏦 Za račune: ${totalStats.bank.toLocaleString()} RSD\n`;
-      content += `💸 Potreban keš: ${totalStats.cash.toLocaleString()} RSD\n\n`;
-      
-      content += `⚠️ NAPOMENA ZA MENADŽERE:\n`;
-      content += `Pripremiti ${totalStats.cash.toLocaleString()} RSD u gotovini!\n\n`;
-    }
-    
-    content += `📱 Generirano: ${new Date().toLocaleDateString('sr-RS')} u ${new Date().toLocaleTimeString('sr-RS')}\n`;
-    content += `🏢 Restoran Management`;
-    
-    return content;
+    content += `Raspoređeno: ${totalScheduled.size}\n`;
+    content += `Slobodno: ${employees.length - totalScheduled.size}\n`;
+
+    downloadTextFile(`raspored-nedelja-${currentWeek}.txt`, content);
   };
 
-  const content = exportType === 'schedule' ? generateScheduleExport() : generateSalariesExport();
+  // Export slobodnih zaposlenih
+  const exportFreeEmployees = () => {
+    let content = `SLOBODNI ZAPOSLENI - NEDELJA ${currentWeek === 0 ? 'TRENUTNA' : currentWeek > 0 ? `+${currentWeek}` : currentWeek}\n`;
+    content += '='.repeat(50) + '\n\n';
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      alert('✅ Kopirano! Možete da nalepite u WhatsApp grupu.');
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-      alert('❌ Greška pri kopiranju. Pokušajte ponovo.');
-    }
-  };
+    DAYS_OF_WEEK.forEach(day => {
+      content += `📅 ${day.toUpperCase()}\n`;
+      content += '-'.repeat(30) + '\n';
 
-  const shareViaWhatsApp = () => {
-    const encodedText = encodeURIComponent(content);
-    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-    window.open(whatsappUrl, '_blank');
-  };
+      // Pronađi sve dodeljene zaposlene za taj dan
+      const assignedEmployees = new Set<string>();
+      Object.entries(currentSchedule).forEach(([key, employeeNames]) => {
+        if (key.includes(`-${day}-`)) {
+          (employeeNames as string[]).forEach(name => assignedEmployees.add(name));
+        }
+      });
 
-  const shareContent = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: exportType === 'schedule' ? 'Raspored smena' : 'Lista plata',
-          text: content,
+      // Pronađi slobodne
+      const freeEmployees = employees.filter(emp => !assignedEmployees.has(emp.name));
+
+      if (freeEmployees.length > 0) {
+        content += '😎 SLOBODNI:\n';
+        freeEmployees.forEach(emp => {
+          content += `   • ${emp.name} (${emp.position})`;
+          if (emp.phone) content += ` - 📞 ${emp.phone}`;
+          content += '\n';
         });
-      } catch (err) {
-        console.error('Error sharing: ', err);
-        shareViaWhatsApp();
+      } else {
+        content += '   Nema slobodnih zaposlenih\n';
       }
+
+      // Prikaži i ko radi
+      if (assignedEmployees.size > 0) {
+        content += `\n👷 RADI (${assignedEmployees.size}):\n`;
+        Array.from(assignedEmployees).forEach(name => {
+          const emp = employees.find(e => e.name === name);
+          content += `   • ${name}`;
+          if (emp?.position) content += ` (${emp.position})`;
+          content += '\n';
+        });
+      }
+
+      content += '\n';
+    });
+
+    downloadTextFile(`slobodni-nedelja-${currentWeek}.txt`, content);
+  };
+
+  // Export plata
+  const exportSalaries = () => {
+    let content = 'PREGLED PLATA\n';
+    content += '='.repeat(30) + '\n\n';
+
+    if (Object.keys(salaries).length === 0) {
+      content += 'Nema unetih plata.\n';
     } else {
-      shareViaWhatsApp();
+      let totalSalaries = 0;
+      let totalBank = 0;
+      let totalCash = 0;
+
+      Object.values(salaries).forEach(salary => {
+        content += `👤 ${salary.employee}\n`;
+        content += `   💰 Ukupno: ${salary.total.toLocaleString()} RSD\n`;
+        content += `   🏦 Na račun: ${salary.bank.toLocaleString()} RSD\n`;
+        content += `   💵 Kesh: ${salary.cash.toLocaleString()} RSD\n`;
+        content += `   📅 Datum: ${new Date(salary.createdAt).toLocaleDateString('sr-RS')}\n\n`;
+
+        totalSalaries += salary.total;
+        totalBank += salary.bank;
+        totalCash += salary.cash;
+      });
+
+      content += '📊 UKUPNO:\n';
+      content += '-'.repeat(20) + '\n';
+      content += `💰 Ukupne plate: ${totalSalaries.toLocaleString()} RSD\n`;
+      content += `🏦 Ukupno na račun: ${totalBank.toLocaleString()} RSD\n`;
+      content += `💵 Ukupno kesh: ${totalCash.toLocaleString()} RSD\n`;
+      content += `👥 Broj zaposlenih: ${Object.keys(salaries).length}\n`;
+      content += `📈 Prosečna plata: ${Math.round(totalSalaries / Object.keys(salaries).length).toLocaleString()} RSD\n`;
+    }
+
+    const today = new Date().toLocaleDateString('sr-RS');
+    content += `\n📅 Generisano: ${today}\n`;
+
+    downloadTextFile(`plate-${today.replace(/\./g, '-')}.txt`, content);
+  };
+
+  // Helper funkcija za download
+  const downloadTextFile = (filename: string, content: string) => {
+    const element = document.createElement('a');
+    const file = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    element.href = URL.createObjectURL(file);
+    element.download = filename;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleExport = () => {
+    switch (exportType) {
+      case 'schedule':
+        exportSchedule();
+        break;
+      case 'free':
+        exportFreeEmployees();
+        break;
+      case 'salaries':
+        exportSalaries();
+        break;
     }
   };
 
-  const downloadAsFile = () => {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `restoran-${exportType}-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const getExportDescription = () => {
+    switch (exportType) {
+      case 'schedule':
+        return 'Kompletni raspored smena sa kontakt informacijama';
+      case 'free':
+        return 'Lista slobodnih zaposlenih po danima';
+      case 'salaries':
+        return 'Pregled svih plata sa statistikama';
+      default:
+        return '';
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Export opcije */}
-      <Card title="Export opcije">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Šta da exportujem?
-            </label>
-            <Select
-              value={exportType}
-              onChange={(e) => setExportType(e.target.value as 'schedule' | 'salaries')}
-              options={[
-                { value: 'schedule', label: '📅 Raspored smena' },
-                { value: 'salaries', label: '💰 Lista plata' }
-              ]}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Odelenje
-            </label>
-            <Select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              options={[
-                { value: 'all', label: 'Sva odelenja' },
-                ...DEPARTMENTS.map(dept => ({ value: dept.id, label: dept.name }))
-              ]}
-            />
-          </div>
+    <Card title="📤 Export podataka" icon={<Download className="w-5 h-5" />}>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tip exporta
+          </label>
+          <Select
+            value={exportType}
+            onChange={(e) => setExportType(e.target.value as 'schedule' | 'free' | 'salaries')}
+            className="w-full"
+          >
+            <option value="schedule">📅 Raspored smena</option>
+            <option value="free">😎 Slobodni zaposleni</option>
+            <option value="salaries">💰 Plate</option>
+          </Select>
         </div>
-      </Card>
 
-      {/* Preview i akcije */}
-      <Card title="Spreman za deljenje">
-        <div className="space-y-4">
-          {/* Action buttons */}
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={copyToClipboard} 
-              className="flex items-center gap-2"
-              variant="primary"
-            >
-              <Copy className="w-4 h-4" />
-              Kopiraj tekst
-            </Button>
-            <Button 
-              onClick={shareViaWhatsApp} 
-              variant="success" 
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="w-4 h-4" />
-              WhatsApp
-            </Button>
-            <Button 
-              onClick={shareContent} 
-              variant="secondary" 
-              className="flex items-center gap-2"
-            >
-              <Share className="w-4 h-4" />
-              Podeli
-            </Button>
-            <Button 
-              onClick={downloadAsFile} 
-              variant="secondary" 
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Preuzmi
-            </Button>
-          </div>
-          
-          {/* Preview */}
-          <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-            <pre className="whitespace-pre-wrap text-sm font-mono text-gray-800">
-              {content}
-            </pre>
-          </div>
-          
-          {/* Instructions */}
-          <div className="text-sm text-gray-600 bg-green-50 p-4 rounded-lg border border-green-200">
-            <h4 className="font-medium text-green-800 mb-2">📱 Kako koristiti:</h4>
-            <ul className="space-y-1 text-green-700">
-              <li><strong>📋 Kopiraj tekst:</strong> Za ručno lepljenje bilo gde</li>
-              <li><strong>💬 WhatsApp:</strong> Direktno otvara WhatsApp sa tekstom</li>
-              <li><strong>📤 Podeli:</strong> Koristi telefon za deljenje</li>
-              <li><strong>💾 Preuzmi:</strong> Čuva kao .txt fajl</li>
-            </ul>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="flex items-start gap-3">
+            {exportType === 'schedule' && <Calendar className="w-5 h-5 text-blue-500 mt-1" />}
+            {exportType === 'free' && <Users className="w-5 h-5 text-green-500 mt-1" />}
+            {exportType === 'salaries' && <DollarSign className="w-5 h-5 text-yellow-500 mt-1" />}
+            <div>
+              <p className="font-medium text-gray-800">
+                {exportType === 'schedule' && 'Raspored smena'}
+                {exportType === 'free' && 'Slobodni zaposleni'}
+                {exportType === 'salaries' && 'Pregled plata'}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                {getExportDescription()}
+              </p>
+              {(exportType === 'schedule' || exportType === 'free') && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Nedelja: {currentWeek === 0 ? 'Trenutna' : currentWeek > 0 ? `+${currentWeek}` : currentWeek}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </Card>
-    </div>
+
+        <Button
+          onClick={handleExport}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Preuzmi {exportType === 'schedule' ? 'raspored' : exportType === 'free' ? 'slobodne' : 'plate'}
+        </Button>
+
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 className="font-medium text-blue-800 mb-2">💡 Saveti za export</h4>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• Fajlovi se čuvaju kao .txt format koji možete otvoriti u bilo kom editoru</li>
+            <li>• Možete kopirati sadržaj i poslati putem WhatsApp, SMS ili email-a</li>
+            <li>• Export uključuje sve relevantne informacije i kontakte</li>
+            <li>• Za štampanje koristite obični tekst editor</li>
+          </ul>
+        </div>
+      </div>
+    </Card>
   );
 }

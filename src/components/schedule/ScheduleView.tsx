@@ -1,10 +1,12 @@
-// src/components/schedule/ScheduleView.tsx - Sa tabom za slobodne
+// src/components/schedule/ScheduleView.tsx - Sa novim position-based pristupom
 import React, { useState } from 'react';
 import { DepartmentTabs } from '@/components/layout/DepartmentTabs';
 import { WeekNavigator } from './WeekNavigator';
 import { EmployeeSelector } from './EmployeeSelector';
 import { ShiftCard } from './ShiftCard';
 import { FreeEmployeesView } from './FreeEmployeesView';
+import { PositionBasedScheduler } from './PositionBasedScheduler';
+import { MobileFriendlyScheduler } from './MobileFriendlyScheduler';
 import { DAYS_OF_WEEK } from '@/lib/constants';
 import { Employee, ScheduleFormData } from '@/types';
 
@@ -20,6 +22,8 @@ interface ScheduleViewProps {
   onAddEmployee: () => void;
   getEmployeesForShift: (department: string, day: string, shift: string) => string[];
   onRemoveEmployee: (day: string, shift: string, index: number) => void;
+  schedules: any;
+  onUpdateSchedule: (updates: any) => void;
 }
 
 export function ScheduleView({
@@ -33,9 +37,11 @@ export function ScheduleView({
   onFormChange,
   onAddEmployee,
   getEmployeesForShift,
-  onRemoveEmployee
+  onRemoveEmployee,
+  schedules,
+  onUpdateSchedule
 }: ScheduleViewProps) {
-  const [viewMode, setViewMode] = useState<'schedule' | 'free'>('schedule');
+  const [viewMode, setViewMode] = useState<'positions' | 'mobile' | 'schedule' | 'free'>('mobile');
 
   return (
     <>
@@ -43,8 +49,28 @@ export function ScheduleView({
       
       <WeekNavigator currentWeek={currentWeek} onWeekChange={onWeekChange} />
       
-      {/* Toggle između rasporeda i slobodnih */}
+      {/* Toggle između različitih prikaza */}
       <div className="flex mb-4 bg-white rounded-lg shadow-sm overflow-hidden">
+        <button
+          onClick={() => setViewMode('mobile')}
+          className={`flex-1 py-3 px-4 text-center transition-colors ${
+            viewMode === 'mobile' 
+              ? 'bg-green-50 text-green-700 border-b-2 border-green-500'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          📱 Mobilni (PREPORUČENO)
+        </button>
+        <button
+          onClick={() => setViewMode('positions')}
+          className={`flex-1 py-3 px-4 text-center transition-colors ${
+            viewMode === 'positions' 
+              ? 'bg-purple-50 text-purple-700 border-b-2 border-purple-500'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          🎯 Pozicije
+        </button>
         <button
           onClick={() => setViewMode('schedule')}
           className={`flex-1 py-3 px-4 text-center transition-colors ${
@@ -53,21 +79,37 @@ export function ScheduleView({
               : 'text-gray-600 hover:bg-gray-50'
           }`}
         >
-          📅 Raspored smena
+          📅 Klasični
         </button>
         <button
           onClick={() => setViewMode('free')}
           className={`flex-1 py-3 px-4 text-center transition-colors ${
             viewMode === 'free' 
-              ? 'bg-green-50 text-green-700 border-b-2 border-green-500'
+              ? 'bg-orange-50 text-orange-700 border-b-2 border-orange-500'
               : 'text-gray-600 hover:bg-gray-50'
           }`}
         >
-          😎 Ko je slobodan?
+          😎 Slobodni
         </button>
       </div>
       
-      {viewMode === 'schedule' ? (
+      {viewMode === 'mobile' ? (
+        <MobileFriendlyScheduler
+          employees={employees}
+          activeTab={activeTab}
+          currentWeek={currentWeek}
+          schedules={schedules}
+          onUpdateSchedule={onUpdateSchedule}
+        />
+      ) : viewMode === 'positions' ? (
+        <PositionBasedScheduler
+          employees={employees}
+          activeTab={activeTab}
+          currentWeek={currentWeek}
+          schedules={schedules}
+          onUpdateSchedule={onUpdateSchedule}
+        />
+      ) : viewMode === 'schedule' ? (
         <>
           <EmployeeSelector
             employees={employees}

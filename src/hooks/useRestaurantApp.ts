@@ -1,26 +1,32 @@
-// src/hooks/useRestaurantApp.ts - Fokus na osnove
-import { useState } from 'react';
+// src/hooks/useRestaurantApp.ts
+import { useState, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { Employee, Schedule, EmployeeFormData, SalaryFormData, ScheduleFormData } from '@/types';
-import { DEFAULT_SHIFTS } from '@/lib/constants';
+import type { 
+  Employee, 
+  EmployeeFormData, 
+  Salary, 
+  SalaryFormData, 
+  ScheduleFormData, 
+  Schedule, 
+  Schedules 
+} from '@/types';
 
 export function useRestaurantApp() {
-  // State management
-  const [activeMenu, setActiveMenu] = useState('schedule');
-  const [activeTab, setActiveTab] = useState('kuhinja');
-  const [currentWeek, setCurrentWeek] = useState(0);
-  
-  // LocalStorage data
-  const [schedules, setSchedules, schedulesLoaded] = useLocalStorage<Schedule>('restaurant-schedules', {});
-  const [employees, setEmployees, employeesLoaded] = useLocalStorage<Employee[]>('restaurant-employees', []);
-  const [salaries, setSalaries, salariesLoaded] = useLocalStorage<Record<string, { total: number; bank: number; cash: number }>>('restaurant-salaries', {});
-  const [availableShifts,, shiftsLoaded] = useLocalStorage<string[]>('custom-shifts', [...DEFAULT_SHIFTS]);
+  // Navigation state
+  const [activeMenu, setActiveMenu] = useState<string>('schedule');
+  const [activeTab, setActiveTab] = useState<string>('kitchen');
+  const [currentWeek, setCurrentWeek] = useState<number>(0);
+
+  // Data storage
+  const [employees, setEmployees, employeesLoaded] = useLocalStorage<Employee[]>('employees', []);
+  const [schedules, setSchedules, schedulesLoaded] = useLocalStorage<Schedules>('schedules', {});
+  const [salaries, setSalaries, salariesLoaded] = useLocalStorage<Record<string, Salary>>('salaries', {});
 
   // Form states
   const [employeeForm, setEmployeeForm] = useState<EmployeeFormData>({
     name: '',
     position: '',
-    department: 'kuhinja',
+    department: 'kitchen',
     phone: '',
     notes: ''
   });
@@ -33,142 +39,137 @@ export function useRestaurantApp() {
 
   const [scheduleForm, setScheduleForm] = useState<ScheduleFormData>({
     employee: '',
-    day: '',
-    shift: ''
+    day: 'Ponedeljak',
+    shift: '8-16'
   });
 
-  const isLoaded = schedulesLoaded && employeesLoaded && salariesLoaded && shiftsLoaded;
+  // Available shifts
+  const availableShifts = ['8-16', '10-14', '14-22', '16-24', '18-22', '10-14 i 18-22'];
 
-  // Schedule functions
-  const getEmployeesForShift = (department: string, day: string, shift: string) => {
-    const weekKey = `week-${currentWeek}`;
-    const key = `${department}-${day}-${shift}`;
-    return schedules[weekKey]?.[key] || [];
-  };
+  // Loading state
+  const isLoaded = employeesLoaded && schedulesLoaded && salariesLoaded;
 
-  const addEmployeeToSchedule = () => {
-    if (!scheduleForm.employee || !scheduleForm.day || !scheduleForm.shift) {
-      alert('Molimo izaberite zaposlenog, dan i smenu');
-      return;
-    }
-    
-    const weekKey = `week-${currentWeek}`;
-    const key = `${activeTab}-${scheduleForm.day}-${scheduleForm.shift}`;
-    
-    // Check if employee is already scheduled for this shift
-    const existingEmployees = schedules[weekKey]?.[key] || [];
-    if (existingEmployees.includes(scheduleForm.employee)) {
-      alert('Zaposleni je već raspoređen u ovoj smeni');
-      return;
-    }
-    
-    setSchedules(prev => {
-      const newSchedules = { ...prev };
-      if (!newSchedules[weekKey]) newSchedules[weekKey] = {};
-      if (!newSchedules[weekKey][key]) newSchedules[weekKey][key] = [];
-      
-      newSchedules[weekKey][key] = [...newSchedules[weekKey][key], scheduleForm.employee];
-      return newSchedules;
-    });
-    
-    setScheduleForm({ employee: '', day: '', shift: '' });
-  };
-
-  const removeEmployeeFromSchedule = (day: string, shift: string, employeeIndex: number) => {
-    const weekKey = `week-${currentWeek}`;
-    const key = `${activeTab}-${day}-${shift}`;
-    
-    setSchedules(prev => {
-      const newSchedules = { ...prev };
-      if (newSchedules[weekKey]?.[key]) {
-        newSchedules[weekKey][key].splice(employeeIndex, 1);
-        if (newSchedules[weekKey][key].length === 0) {
-          delete newSchedules[weekKey][key];
-        }
-      }
-      return newSchedules;
-    });
-  };
-
-  // Employee functions
+  // Employee management
   const addEmployee = () => {
-    if (!employeeForm.name.trim()) {
-      alert('Molimo unesite ime zaposlenog');
+    if (!employeeForm.name.trim() || !employeeForm.position.trim()) {
+      alert('Molimo unesite ime i poziciju zaposlenog');
       return;
     }
-    if (!employeeForm.position.trim()) {
-      alert('Molimo unesite poziciju zaposlenog');
-      return;
-    }
-    
-    // Check if employee already exists
-    const existingEmployee = employees.find(emp => 
-      emp.name.toLowerCase().trim() === employeeForm.name.toLowerCase().trim()
-    );
-    
-    if (existingEmployee) {
-      alert('Zaposleni sa tim imenom već postoji');
-      return;
-    }
-    
+
     const newEmployee: Employee = {
       id: Date.now().toString(),
-      ...employeeForm,
       name: employeeForm.name.trim(),
       position: employeeForm.position.trim(),
-      createdAt: new Date().toISOString()
+      department: employeeForm.department,
+      phone: employeeForm.phone.trim() || undefined,
+      notes: employeeForm.notes.trim() || undefined
     };
-    
+
     setEmployees(prev => [...prev, newEmployee]);
-    setEmployeeForm({ name: '', position: '', department: 'kuhinja', phone: '', notes: '' });
+    setEmployeeForm({
+      name: '',
+      position: '',
+      department: 'kitchen',
+      phone: '',
+      notes: ''
+    });
   };
 
-  const removeEmployee = (employeeId: string) => {
-    const employeeToRemove = employees.find(emp => emp.id === employeeId);
-    if (!employeeToRemove) return;
-    
-    if (confirm(`Da li ste sigurni da želite da uklonite ${employeeToRemove.name}? Ovo će ukloniti i svu istoriju raspoređa za ovog zaposlenog.`)) {
-      // Remove from employees list
-      setEmployees(prev => prev.filter(emp => emp.id !== employeeId));
-      
-      // Remove from salaries
-      setSalaries(prev => {
-        const newSalaries = { ...prev };
-        delete newSalaries[employeeToRemove.name];
-        return newSalaries;
-      });
+  const removeEmployee = (id: string) => {
+    if (confirm('Da li ste sigurni da želite da uklonite ovog zaposlenog?')) {
+      setEmployees(prev => prev.filter(emp => emp.id !== id));
       
       // Remove from all schedules
       setSchedules(prev => {
         const newSchedules = { ...prev };
         Object.keys(newSchedules).forEach(weekKey => {
           Object.keys(newSchedules[weekKey]).forEach(scheduleKey => {
-            newSchedules[weekKey][scheduleKey] = newSchedules[weekKey][scheduleKey]
-              .filter(name => name !== employeeToRemove.name);
-            
-            // Remove empty schedule entries
-            if (newSchedules[weekKey][scheduleKey].length === 0) {
-              delete newSchedules[weekKey][scheduleKey];
+            const employeeName = employees.find(e => e.id === id)?.name;
+            if (employeeName) {
+              newSchedules[weekKey][scheduleKey] = newSchedules[weekKey][scheduleKey].filter(
+                name => name !== employeeName
+              );
             }
           });
-          
-          // Remove empty weeks
-          if (Object.keys(newSchedules[weekKey]).length === 0) {
-            delete newSchedules[weekKey];
-          }
         });
         return newSchedules;
       });
+
+      // Remove salary
+      const employeeName = employees.find(e => e.id === id)?.name;
+      if (employeeName) {
+        setSalaries(prev => {
+          const newSalaries = { ...prev };
+          delete newSalaries[employeeName];
+          return newSalaries;
+        });
+      }
     }
   };
 
-  // Salary functions
-  const addSalary = () => {
-    if (!salaryForm.employee) {
+  // Schedule management
+  const addEmployeeToSchedule = () => {
+    if (!scheduleForm.employee) {
       alert('Molimo izaberite zaposlenog');
       return;
     }
-    
+
+    const weekKey = `week-${currentWeek}`;
+    const scheduleKey = `${activeTab}-${scheduleForm.day}-${scheduleForm.shift}`;
+
+    setSchedules(prev => ({
+      ...prev,
+      [weekKey]: {
+        ...prev[weekKey],
+        [scheduleKey]: [
+          ...(prev[weekKey]?.[scheduleKey] || []),
+          scheduleForm.employee
+        ]
+      }
+    }));
+
+    setScheduleForm(prev => ({ ...prev, employee: '' }));
+  };
+
+  const removeEmployeeFromSchedule = (day: string, shift: string, index: number) => {
+    const weekKey = `week-${currentWeek}`;
+    const scheduleKey = `${activeTab}-${day}-${shift}`;
+
+    setSchedules(prev => {
+      const newSchedules = { ...prev };
+      if (newSchedules[weekKey]?.[scheduleKey]) {
+        newSchedules[weekKey][scheduleKey] = newSchedules[weekKey][scheduleKey].filter(
+          (_, i) => i !== index
+        );
+      }
+      return newSchedules;
+    });
+  };
+
+  const getEmployeesForShift = (department: string, day: string, shift: string): string[] => {
+    const weekKey = `week-${currentWeek}`;
+    const scheduleKey = `${department}-${day}-${shift}`;
+    return schedules[weekKey]?.[scheduleKey] || [];
+  };
+
+  // New function for position-based scheduler
+  const updateSchedule = (updates: Record<string, any>) => {
+    setSchedules(prev => {
+      const newSchedules = { ...prev };
+      Object.entries(updates).forEach(([weekKey, weekData]) => {
+        newSchedules[weekKey] = { ...prev[weekKey], ...weekData };
+      });
+      return newSchedules;
+    });
+  };
+
+  // Salary management
+  const addSalary = () => {
+    if (!salaryForm.employee || !salaryForm.totalSalary || !salaryForm.bankAmount) {
+      alert('Molimo popunite sva polja');
+      return;
+    }
+
     const total = parseFloat(salaryForm.totalSalary);
     const bank = parseFloat(salaryForm.bankAmount);
     
@@ -177,28 +178,33 @@ export function useRestaurantApp() {
       return;
     }
     
-    if (isNaN(bank) || bank < 0) {
+    if (isNaN(bank) || bank < 0 || bank > total) {
       alert('Molimo unesite validan iznos za račun');
       return;
     }
-    
-    if (bank > total) {
-      alert('Iznos za račun ne može biti veći od ukupne plate');
-      return;
-    }
-    
-    const cash = total - bank;
-    
+
+    const salary: Salary = {
+      employee: salaryForm.employee,
+      total,
+      bank,
+      cash: total - bank,
+      createdAt: new Date().toISOString()
+    };
+
     setSalaries(prev => ({
       ...prev,
-      [salaryForm.employee]: { total, bank, cash }
+      [salaryForm.employee]: salary
     }));
-    
-    setSalaryForm({ employee: '', totalSalary: '', bankAmount: '' });
+
+    setSalaryForm({
+      employee: '',
+      totalSalary: '',
+      bankAmount: ''
+    });
   };
 
   const removeSalary = (employeeName: string) => {
-    if (confirm(`Da li ste sigurni da želite da uklonite podatke o plati za ${employeeName}?`)) {
+    if (confirm('Da li ste sigurni da želite da uklonite platu?')) {
       setSalaries(prev => {
         const newSalaries = { ...prev };
         delete newSalaries[employeeName];
@@ -206,6 +212,17 @@ export function useRestaurantApp() {
       });
     }
   };
+
+  // Debug logging
+  useEffect(() => {
+    if (isLoaded) {
+      console.log('App loaded:', {
+        employees: employees.length,
+        schedules: Object.keys(schedules).length,
+        salaries: Object.keys(salaries).length
+      });
+    }
+  }, [isLoaded, employees.length, schedules, salaries]);
 
   return {
     // State
@@ -217,8 +234,8 @@ export function useRestaurantApp() {
     setCurrentWeek,
     
     // Data
-    schedules,
     employees,
+    schedules,
     salaries,
     availableShifts,
     
@@ -236,6 +253,7 @@ export function useRestaurantApp() {
     addEmployeeToSchedule,
     removeEmployeeFromSchedule,
     getEmployeesForShift,
+    updateSchedule, // Nova funkcija za position-based scheduler
     addSalary,
     removeSalary,
     
