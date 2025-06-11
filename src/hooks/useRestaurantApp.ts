@@ -7,7 +7,6 @@ import type {
   Salary, 
   SalaryFormData, 
   ScheduleFormData,
-  Schedule, 
   Schedules 
 } from '@/types';
 
